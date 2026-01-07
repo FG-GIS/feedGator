@@ -1,0 +1,44 @@
+# Binary Files (Executables)
+# Add specific binary names if you have a custom build output
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+
+# Test binaries
+*.test
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Dependency directories (Only needed if using 'go mod vendor')
+# Most people don't check in /vendor, but it depends on your team's workflow
+# vendor/
+
+# Output of 'go generate'
+# Only ignore if you want users to generate these themselves
+# *.gen.go
+
+# Coverage and Profiling
+*.out
+*.prof
+cpupof
+memprof
+
+# IDE/Editor Specific Files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS Specific Files
+.DS_Store
+Thumbs.db
+
+# Environment Secrets
+.env
+.env.local
