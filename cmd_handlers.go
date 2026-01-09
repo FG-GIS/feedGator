@@ -87,3 +87,22 @@ func handlerGetUsers(s *state, cmd command) error {
 	}
 	return nil
 }
+
+func handlerAgg(s *state, cmd command) error {
+	// if len(cmd.args) == 0 {
+	// 	return errors.New("Error, not enough arguments, url required.")
+	// }
+	if len(cmd.args) > 1 {
+		return errors.New("Error, too many arguments.")
+	}
+	if len(cmd.args) == 0 {
+		cmd.args = append(cmd.args, "https://www.wagslane.dev/index.xml")
+	}
+	feed, err := fetchFeed(context.Background(), cmd.args[0])
+	if err != nil {
+		log.Println("GATOR -- Error fetching feed.")
+		return err
+	}
+	log.Println("GATOR -- fetched feed ==> ", feed)
+	return nil
+}
