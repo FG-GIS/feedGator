@@ -16,13 +16,7 @@ type state struct {
 }
 
 func main() {
-	conf, err := config.Read()
-	if err != nil {
-		log.Fatalf("Error reading the config file: %v", err)
-	}
-	s := state{
-		cfg: &conf,
-	}
+	s := getState()
 	c := commands{
 		commandList: make(map[string]func(*state, command) error),
 	}
@@ -31,12 +25,13 @@ func main() {
 	c.register("reset", handlerReset)
 	c.register("users", handlerGetUsers)
 	c.register("agg", handlerAgg)
-	c.register("addfeed", handlerFeed)
+	c.register("addfeed", middlewareLoggedIn(handlerFeed))
 	c.register("feeds", handlerGetFeeds)
-	c.register("follow", handlerSetFollow)
-	c.register("following", handlerShowFollowingUser)
+	c.register("follow", middlewareLoggedIn(handlerSetFollow))
+	c.register("following", middlewareLoggedIn(handlerShowFollowingUser))
+	c.register("unfollow", middlewareLoggedIn(handlerUnfollow))
 
-	db, err := sql.Open("postgres", conf.DBURL)
+	db, err := sql.Open("postgres", s.cfg.DBURL)
 
 	dbQueries := database.New(db)
 	s.db = dbQueries

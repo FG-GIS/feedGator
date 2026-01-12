@@ -89,32 +89,27 @@ func handlerGetUsers(s *state, cmd command) error {
 }
 
 func handlerAgg(s *state, cmd command) error {
-	// if len(cmd.args) == 0 {
-	// 	return errors.New("Error, not enough arguments, url required.")
-	// }
+	if len(cmd.args) == 0 {
+		return errors.New("Error, not enough arguments, request timing required.")
+	}
 	if len(cmd.args) > 1 {
 		return errors.New("Error, too many arguments.")
 	}
-	if len(cmd.args) == 0 {
-		cmd.args = append(cmd.args, "https://www.wagslane.dev/index.xml")
-	}
-	feed, err := fetchFeed(context.Background(), cmd.args[0])
+	delay, err := time.ParseDuration(cmd.args[0])
 	if err != nil {
-		fmt.Println("GATOR -- Error fetching feed.")
+		fmt.Println("GATOR -- Error converting time string.")
 		return err
 	}
-	fmt.Println("GATOR -- fetched feed ==> ", feed)
-	return nil
+	fmt.Printf("GATOR -- Collecting feeds every %v\n", delay)
+	ticker := time.NewTicker(delay)
+	for ; ; <-ticker.C {
+		scrapeFeeds(s)
+	}
 }
 
-func handlerFeed(s *state, cmd command) error {
+func handlerFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.args) < 2 {
 		return errors.New("GATOR -- Error, not enough arguments, name and url required.")
-	}
-	currentUsr, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		fmt.Println("GATOR -- Error getting current user.")
-		return err
 	}
 	feedEntry := database.CreateFeedParams{
 		ID:        uuid.New(),
@@ -122,7 +117,7 @@ func handlerFeed(s *state, cmd command) error {
 		UpdatedAt: time.Now(),
 		Name:      cmd.args[0],
 		Url:       cmd.args[1],
-		UserID:    currentUsr.ID,
+		UserID:    user.ID,
 	}
 	feed, err := s.db.CreateFeed(context.Background(), feedEntry)
 	if err != nil {
@@ -130,7 +125,7 @@ func handlerFeed(s *state, cmd command) error {
 		return err
 	}
 	cmd.args = cmd.args[1:]
-	err = handlerSetFollow(s, cmd)
+	err = handlerSetFollow(s, cmd, user)
 	if err != nil {
 		fmt.Println("GATOR -- Error setting follow.")
 		return err
@@ -157,17 +152,12 @@ func handlerGetFeeds(s *state, cmd command) error {
 	return nil
 }
 
-func handlerSetFollow(s *state, cmd command) error {
+func handlerSetFollow(s *state, cmd command, user database.User) error {
 	if len(cmd.args) == 0 {
 		return errors.New("GATOR -- Error, not enough arguments, URL required.")
 	}
 	if len(cmd.args) > 1 {
 		return errors.New("GATOR -- Error, too many arguments.")
-	}
-	currentUsr, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		fmt.Println("GATOR -- Error getting current user.")
-		return err
 	}
 
 	feed, err := s.db.GetFeedByURL(context.Background(), cmd.args[0])
@@ -180,7 +170,7 @@ func handlerSetFollow(s *state, cmd command) error {
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		UserID:    currentUsr.ID,
+		UserID:    user.ID,
 		FeedsID:   feed.ID,
 	}
 	follows, err := s.db.CreateFeedFollows(context.Background(), followEntry)
@@ -194,20 +184,39 @@ func handlerSetFollow(s *state, cmd command) error {
 	return nil
 }
 
-func handlerShowFollowingUser(s *state, cmd command) error {
+func handlerShowFollowingUser(s *state, cmd command, user database.User) error {
 	if len(cmd.args) > 0 {
 		return errors.New("GATOR -- Error, too many arguments")
 	}
-	currentUsr, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		fmt.Println("GATOR -- Error getting current user.")
-		return err
-	}
-	follows, err := s.db.GetFeedFollowsForUser(context.Background(), currentUsr.ID)
+	follows, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		fmt.Println("GATOR -- Error, can't retrieve follows for user.")
 		return err
 	}
-	printFollowing(follows, currentUsr.Name)
+	printFollowing(follows, user.Name)
+	return nil
+}
+
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	if len(cmd.args) == 0 {
+		return errors.New("GATOR -- Error, not enough arguments, URL required.")
+	}
+	if len(cmd.args) > 1 {
+		return errors.New("GATOR -- Error, too many arguments.")
+	}
+	feed, err := s.db.GetFeedByURL(context.Background(), cmd.args[0])
+	if err != nil {
+		fmt.Println("GATOR -- Error, URL not found.")
+		return err
+	}
+	err = s.db.Unfollow(context.Background(), database.UnfollowParams{
+		UserID:  user.ID,
+		FeedsID: feed.ID,
+	})
+	if err != nil {
+		fmt.Println("GATOR -- Error, problem unfollowing:")
+		return err
+	}
+	fmt.Printf("GATOR -- User => %s - unfollowed => %s\n", user.Name, feed.Name)
 	return nil
 }
