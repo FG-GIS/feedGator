@@ -53,7 +53,7 @@ it should contain:
 ```
 
 ## Commands
-
+to run the program run `boot-go-gator` followed by:
 - register <user>
   *adds a user to the database*
 - login <user>
