@@ -4,9 +4,9 @@ Creating an RSS aggregator with internal database, as a lesson for both go devel
 
 ### Roadmap
 
-1. Renaming package;
-2. Assigning verbose output to -v option for each command;
-3. Update agg to a background running process, concurrent.
+1. Assigning verbose output to -v option for each command;
+  - handlerAgg verbose added;
+2. Update agg to a background running process, concurrent.
 
 #### Prerequisites
 
@@ -34,7 +34,7 @@ Or use your package manager depending on your distro.
 
 To install the gator package run:
 ```
-go install https://github.com/FG-GIS/boot-go-gator@latest
+go install https://github.com/FG-GIS/feedGator@latest
 ```
 
 After setting up postgres with credentials, generate this file to hold your configuration,
@@ -51,7 +51,7 @@ it should contain:
 ```
 
 ### Commands
-to run the program run `boot-go-gator` followed by:
+to run the program run `feedGator` followed by:
 - register *user*  
   *adds a user to the database*
 - login *user*  

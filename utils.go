@@ -60,7 +60,7 @@ func middlewareLoggedIn(handler func(s *state, cmd command, user database.User) 
 	}
 }
 
-func scrapeFeeds(s *state) error {
+func scrapeFeeds(s *state, verbose bool) error {
 	feed, err := s.db.GetNextFeedToFetch(context.Background())
 	if err != nil {
 		fmt.Println("GATOR -- Error getting next feed to fetch.")
@@ -110,7 +110,9 @@ func scrapeFeeds(s *state) error {
 				continue
 			}
 		}
-		fmt.Printf("GATOR -- Post added => %v\n", post.Title)
+		if verbose {
+			fmt.Printf("GATOR -- Post added => %v\n", post.Title)
+		}
 	}
 	return nil
 }

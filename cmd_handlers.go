@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/FG-GIS/feedGator/internal/database"
-	"github.com/google/uuid"
+	"slices"
 	"strconv"
 	"time"
+
+	"github.com/FG-GIS/feedGator/internal/database"
+	"github.com/google/uuid"
 )
 
 func handlerLogin(s *state, cmd command) error {
@@ -89,11 +91,12 @@ func handlerGetUsers(s *state, cmd command) error {
 }
 
 func handlerAgg(s *state, cmd command) error {
+	var verbose bool = false
 	if len(cmd.args) == 0 {
 		return errors.New("Error, not enough arguments, request timing required.")
 	}
-	if len(cmd.args) > 1 {
-		return errors.New("Error, too many arguments.")
+	if len(cmd.args) > 1 && slices.Contains(cmd.args, "-v") {
+		verbose = true
 	}
 	delay, err := time.ParseDuration(cmd.args[0])
 	if err != nil {
@@ -103,7 +106,7 @@ func handlerAgg(s *state, cmd command) error {
 	fmt.Printf("GATOR -- Collecting feeds every %v\n", delay)
 	ticker := time.NewTicker(delay)
 	for ; ; <-ticker.C {
-		scrapeFeeds(s)
+		scrapeFeeds(s, verbose)
 	}
 }
 

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"encoding/xml"
-	"fmt"
+	// "fmt"
 	"html"
 	"io"
 	"net/http"
@@ -66,10 +66,10 @@ func (f *RSSFeed) rssUnescape() {
 	}
 }
 
-func (f *RSSFeed) printTitles() {
-	fmt.Printf("GATOR -- Feed retrieved: %s\n", f.Channel.Link)
-	fmt.Printf("**From => %s\n", f.Channel.Title)
-	for _, item := range f.Channel.Item {
-		fmt.Printf("* %s\n", item.Title)
-	}
-}
+// func (f *RSSFeed) printTitles() {
+// 	fmt.Printf("GATOR -- Feed retrieved: %s\n", f.Channel.Link)
+// 	fmt.Printf("**From => %s\n", f.Channel.Title)
+// 	for _, item := range f.Channel.Item {
+// 		fmt.Printf("* %s\n", item.Title)
+// 	}
+// }
